@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveFunctor  #-}
+
 module Main where
 
 import           Control.Applicative (Alternative)
