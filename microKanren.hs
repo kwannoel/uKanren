@@ -1,8 +1,11 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor  #-}
 module Main where
 
-import           Control.Monad (mzero)
+import           Control.Applicative (Alternative)
+import           Control.Monad       (MonadPlus (..))
 
-type Goal = State -> [State]
+type Goal = State -> Stream State
 type State = (Subst, VariableCounter)
 type Subst = [(Var, Term)]
 type Var = Integer
@@ -12,6 +15,24 @@ data Term = Atom String
           | Var Var
           | Pair Term Term
           deriving Show
+
+data Stream a = Nil
+              | Cons a (Stream a)
+              | Immature (Stream a)
+              deriving (Alternative, Applicative, Functor, Show)
+
+instance Monad Stream where
+    return x = Cons x Nil
+    Nil >>= f         = mzero
+    x `Cons` xs >>= f = f x `mplus` (xs >>= f)
+    Immature xs >>= f = Immature (xs >>= f)
+
+-- Interleaving rather than appending 2 streams
+instance MonadPlus Stream where
+    mzero = Nil
+    Nil `mplus` xs           = xs
+    (x `Cons` xs) `mplus` ys = x `Cons` (ys `mplus` xs)
+    Immature xs `mplus` ys   = Immature (ys `mplus` xs) -- Prioritize snd stream
 
 walk :: Term -> Subst -> Term
 walk (Var v) s = case lookup v s of Nothing -> Var v
@@ -45,11 +66,6 @@ disj g1 g2 = \s -> g1 s `mplus` g2 s
 conj :: Goal -> Goal -> Goal
 conj g1 g2 = \s -> g1 s >>= g2
 
-mplus :: [a] -> [a] -> [a]
-mplus [] l          = l
-mplus l []          = l
-mplus (x:xs) (y:ys) = x : y : mplus xs ys
-
 --------- Tests
 initialState :: State
 initialState = ([], 0)
@@ -81,15 +97,21 @@ cyclicState = ([ (0, Var 1), (1, Var 0) -- Our infinite cycle
 
 cyclicTests :: [Goal]
 cyclicTests = [ canTest1
-              , terminatingBranchesT
-              -- , neverTest1 -- This test never terminates
-              -- , neverTest2 -- This test never terminates
+              , takeNS 2 <$> recurseSndTest -- This test terminates because we are able to deconstruct the first arg
+              -- , takeNS 2 <$> recurseFstTest -- This test never terminates
+              , takeNS 2 <$> recurseFstImmTest
               ]
     where
-        terminatingBranchesT = return . head <$> neverTest1 `disj` neverTest2 `disj` canTest1
         canTest1 = Var 2 === Atom "1"
-        neverTest1 = Var 0 === Var 0 -- Attempts to unify this fails
-        neverTest2 = Var 1 === Var 0 -- Attempts to unify this fails
+        recurseFstImmTest = disj (Immature <$> recurseFstImmTest) (fresh (=== Atom "7"))
+        recurseSndTest = disj (fresh (=== Atom "7")) recurseSndTest
+        recurseFstTest = disj recurseFstTest (fresh (=== Atom "7"))
+
+        takeNS :: Int -> Stream a -> Stream a
+        takeNS i _ | i < 1 = Nil
+        takeNS _ Nil          = Nil
+        takeNS i (Immature s) = takeNS i s
+        takeNS i (x `Cons` xs) = x `Cons` takeNS (i - 1) xs
 
 runTests :: State -> [Goal] -> IO ()
 runTests _ [] = return ()
