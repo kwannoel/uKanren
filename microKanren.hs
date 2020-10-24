@@ -25,14 +25,14 @@ instance Monad Stream where
     return x = Cons x Nil
     Nil >>= f         = mzero
     x `Cons` xs >>= f = f x `mplus` (xs >>= f)
-    Immature xs >>= f = Immature (xs >>= f)
+    Immature xs >>= f = xs >>= f
 
 -- Interleaving rather than appending 2 streams
 instance MonadPlus Stream where
     mzero = Nil
     Nil `mplus` xs           = xs
     (x `Cons` xs) `mplus` ys = x `Cons` (ys `mplus` xs)
-    Immature xs `mplus` ys   = Immature (ys `mplus` xs) -- Prioritize snd stream
+    Immature xs `mplus` ys   = ys `mplus` xs -- Prioritize snd stream
 
 walk :: Term -> Subst -> Term
 walk (Var v) s = case lookup v s of Nothing -> Var v
@@ -100,12 +100,14 @@ cyclicTests = [ canTest1
               , takeNS 2 <$> recurseSndTest -- This test terminates because we are able to deconstruct the first arg
               -- , takeNS 2 <$> recurseFstTest -- This test never terminates
               , takeNS 2 <$> recurseFstImmTest
+              , takeNS 2 <$> recurseDisjConjTest
               ]
     where
         canTest1 = Var 2 === Atom "1"
         recurseFstImmTest = disj (Immature <$> recurseFstImmTest) (fresh (=== Atom "7"))
         recurseSndTest = disj (fresh (=== Atom "7")) recurseSndTest
         recurseFstTest = disj recurseFstTest (fresh (=== Atom "7"))
+        recurseDisjConjTest = conj recurseFstImmTest recurseFstImmTest
 
         takeNS :: Int -> Stream a -> Stream a
         takeNS i _ | i < 1 = Nil
