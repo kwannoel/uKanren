@@ -2,6 +2,16 @@
 
 A minimal implementation of `microKanren`
 
+# References
+
+http://webyrd.net/scheme-2013/papers/HemannMuKanren2013.pdf
+
+https://github.com/jasonhemann/microKanren
+
+https://gist.github.com/msullivan/4223fd47991acbe045ec#file-microkanren-hs
+
+https://github.com/seantalts/hasktrip/blob/master/src/MicroKanren.lhs
+
 # Key concepts & definitions
 
 ## Core functionality
