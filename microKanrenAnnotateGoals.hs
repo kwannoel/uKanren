@@ -3,9 +3,10 @@
 
 module Main where
 
-import           Data.List (transpose)
+import           Control.Applicative (Alternative)
+import           Control.Monad       (MonadPlus (..))
 
-type Goal = State -> [State]
+type Goal = State -> Stream State
 type State = (Subst, VariableCounter)
 type Subst = [(Var, Term)]
 type Var = Integer
@@ -15,6 +16,24 @@ data Term = Atom String
           | Var Var
           | Pair Term Term
           deriving Show
+
+data Stream a = Nil
+              | Cons a (Stream a)
+              | Immature (Stream a)
+              deriving (Alternative, Applicative, Functor, Show)
+
+instance Monad Stream where
+    return x = Cons x Nil
+    Nil >>= f         = mzero
+    x `Cons` xs >>= f = f x `mplus` (xs >>= f)
+    Immature xs >>= f = xs >>= f
+
+-- Interleaving rather than appending 2 streams
+instance MonadPlus Stream where
+    mzero = Nil
+    Nil `mplus` xs           = xs
+    (x `Cons` xs) `mplus` ys = x `Cons` (ys `mplus` xs)
+    Immature xs `mplus` ys   = ys `mplus` xs -- Prioritize snd stream
 
 walk :: Term -> Subst -> Term
 walk (Var v) s = case lookup v s of Nothing -> Var v
@@ -26,7 +45,7 @@ extS v t s = (v, t) : s
 
 (===) :: Term -> Term -> Goal
 (===) t1 t2 = \(s, vc) -> case unify t1 t2 s of
-    [] -> []
+    [] -> mzero
     s' -> return (s', vc)
 
 unify :: Term -> Term -> Subst -> Subst
@@ -37,13 +56,13 @@ unify t1 t2 s = go (walk t1 s) (walk t2 s)
         go (Var v1) t2' = extS v1 t2' s
         go t1' (Var v2) = extS v2 t1' s
         go (Pair u1 u2) (Pair v1 v2) = unify u2 v2 (unify u1 v1 s)
-        go _ _ = []
+        go _ _ = mzero
 
 fresh :: (Term -> Goal) -> Goal
 fresh f = \(s, c) -> f (Var c) (s, c + 1)
 
 disj :: Goal -> Goal -> Goal
-disj g1 g2 = \s -> (concat . transpose) [g1 s, g2 s]
+disj g1 g2 = \s -> g1 s `mplus` g2 s
 
 conj :: Goal -> Goal -> Goal
 conj g1 g2 = \s -> g1 s >>= g2
@@ -79,13 +98,23 @@ cyclicState = ([ (0, Var 1), (1, Var 0) -- Our infinite cycle
 
 cyclicTests :: [Goal]
 cyclicTests = [ canTest1
-              , take 2 <$> recurseSndTest
-              -- , recurseFstTest -- This test never terminates
+              , takeNS 2 <$> recurseSndTest -- This test terminates because we are able to deconstruct the first arg
+              -- , takeNS 2 <$> recurseFstTest -- This test never terminates
+              , takeNS 2 <$> recurseFstImmTest
+              , takeNS 2 <$> recurseDisjConjTest
               ]
     where
         canTest1 = Var 2 === Atom "1"
-        -- recurseFstTest = disj recurseFstTest (fresh (=== Atom "7"))
+        recurseFstImmTest = disj (Immature <$> recurseFstImmTest) (fresh (=== Atom "7"))
         recurseSndTest = disj (fresh (=== Atom "7")) recurseSndTest
+        recurseFstTest = disj recurseFstTest (fresh (=== Atom "7"))
+        recurseDisjConjTest = conj recurseFstImmTest recurseFstImmTest
+
+        takeNS :: Int -> Stream a -> Stream a
+        takeNS i _ | i < 1 = Nil
+        takeNS _ Nil          = Nil
+        takeNS i (Immature s) = takeNS i s
+        takeNS i (x `Cons` xs) = x `Cons` takeNS (i - 1) xs
 
 runTests :: State -> [Goal] -> IO ()
 runTests _ [] = return ()

@@ -67,57 +67,70 @@ A non-negative integer. It initializes as `0`.
 
 ## Extras
 
-If we allow cyclic substutions, for instance `[(0, Var 1), (1, Var 0), (2, Atom "valid")]`, when we try to unify either `Var 1` or `Var 2`, we will never terminate.
+### Disjunction
 
-The following `goal` should still succeed however:
-
-``` haskell
-g = disj (fresh (=== Atom "7")) g
-```
-
-Since `(fresh (=== Atom "7"))` should succeed.
-
-Let's see why it doesn't if we use `lists` rather than `delayed streams`.
+When we try to perform a disjunction with a non-terminal goal and a terminal goal, we should still get results.
 
 ``` haskell
-g = disj (fresh (=== Atom "7")) g
-  -- Definition of disj
-  = \st -> (fresh (=== Atom "7") st) `mplus` g st
-  = \st@(s, vc) -> (fresh (=== Atom "7") st) `mplus` g st
-  = \st@(s, vc) -> ((\(s', vc') -> (Var c === Atom "7") (s', vc' + 1)) (s, vc)) `mplus` g st
-  = \st@(s, vc) -> ((Var c === Atom "7") (s, vc + 1)) `mplus` g st
-  = \st@(s, vc) -> ([[((c, Atom "7") : s, vc + 1)]]) `mplus` g st
-  = \st@(s, vc) -> ([[((c, Atom "7") : s, vc + 1)]]) `mplus` disj (fresh (=== Atom "7")) g st
-  = \st@(s, vc) -> ([[((c, Atom "7") : s, vc + 1)]]) 
-        `mplus` ((fresh (=== Atom "7") st) `mplus` g st)
-  = \st@(s, vc) -> ([[((c, Atom "7") : s, vc + 1)]]) 
-        `mplus` ((fresh (=== Atom "7") st) 
-            `mplus` ((fresh (=== Atom "7") st) `mplus` g st))
+nonTermG = nonTermG `disj` (fresh (=== Atom "7"))
 ```
 
-We also know the above matches the following invocation of `mplus`
-``` haskell
-mplus (x:xs) snd@(y:ys)
-    where
-        x = [[((c, Atom "7") : s, vc + 1)]]
-        xs = []
-        snd = (fresh (=== Atom "7") st) `mplus` ((fresh (=== Atom "7") st) `mplus` g st)
-        -- More explicitly
-        snd = mplus (fresh (=== Atom "7") st) ((fresh (=== Atom "7") st) `mplus` g st)
-```
+In principle, the above should be valid. Although `nonTermG` never terminates, the second goal succeeds, so `disj` should succeed by definition.
 
-To get `y` out of the above, we have the first evaluate the `snd` arguement so we can pattern match on it.
-
-We can also swap around the original expression:
+If we look into implementation however, the above evaluates to this when applied to a state, `s`:
 
 ``` haskell
-g = disj (fresh (=== Atom "7")) g
+nonTermG = nonTermG `disj` (fresh (=== Atom "7"))
+
+nonTermG s@(subst, vc) = (concat . transpose) [nonTermG s, (Var vc === sc) (subst, vc + 1)] -- (1)
 ```
 
-This then shows how we face the problem as well, this time for the first argument to `mplus`, `(x:xs)`.
+To deconstruct `nonTermG`, we have to try to expand it to the first term at least in the output state.
+
+Deconstruction recurses indefinitely however, continuing from (1):
+
+``` haskell
+nonTermG s@(subst, vc) = (concat . transpose) [nonTermG s, (Var vc === sc) (subst, vc + 1)] -- (1)
+-- Hiding non important parts to make this apparent, just showing the shape of the recursion
+nonTermG s = f [nonTermG s, term]
+nonTermG s = f [f [nonTermG s, term], term]
+nonTermG s = f [f [f [nonTermG s, term], term], term]
+-- ...
+```
+
+Hence this never gives us a result.
+
+If we reversed it however, we would still be able to get results:
+
+``` haskell
+nonTermG = (fresh (=== Atom "7")) `disj` nonTermG 
+nonTermG s@(subst, vc) = (concat . transpose) [(Var vc === sc) (subst, vc + 1), nonTermG s]
+-- Hiding non important parts to make this apparent
+nonTermG s = f [terminal, nonTermG s]
+nonTermG s = f [terminal, f [terminal, nonTermG s]]
+nonTermG s = f [terminal, f [terminal, nonTermG s]]
+
+-- For reference, definition of transpose
+tranpose :: [[a]] -> [[a]]
+transpose [] = []
+transpose ([] : xss) = transpose xss
+transpose ((x:xs) : xss) = (x : [h | (h: _) <- xss] ): transpose (xs : [ t | (_:t) <- xss])
+```
 
 What are our solutions?
 
-Well, we can explicitly annotate `goals` which recurse indefinitely as `Immature`.
+### Solutions
+
+#### Allow users to annotate goals
+
+We can explicitly annotate `goals` which recurse indefinitely as `Immature`.
 
 We then greedily get the `goals` we can get, and come back to the `Immature` goals after.
+
+However, this requires the `user` to do so, if they incorrectly annotate their expressions, it will still recurse indefinitely.
+
+This is a relatively simple solution to implement however.
+
+#### Check during compile time 
+
+Pending investigation, maybe we could introduce a typelevel parameter for variables, to include `Nat` in their parameters.
