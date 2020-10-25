@@ -109,6 +109,9 @@ nonTermG s@(subst, vc) = (concat . transpose) [(Var vc === sc) (subst, vc + 1), 
 nonTermG s = f [terminal, nonTermG s]
 nonTermG s = f [terminal, f [terminal, nonTermG s]]
 nonTermG s = f [terminal, f [terminal, nonTermG s]]
+nonTermG s = (terminal: head nonTermG s) ++ f [[], tail (nonTermG s)]
+nonTermG s = (terminal: [head (nonTermG s)]) ++ f [[], tail (nonTermG s)]
+nonTermG s = [terminal, terminal] ++ f [[], tail (nonTermG s)]
 
 -- For reference, definition of transpose
 tranpose :: [[a]] -> [[a]]
