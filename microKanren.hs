@@ -3,7 +3,8 @@
 
 module Main where
 
-import           Data.List (transpose)
+import           Control.Monad (mzero)
+import           Data.List     (transpose)
 
 type Goal = State -> [State]
 type State = (Subst, VariableCounter)
@@ -26,18 +27,18 @@ extS v t s = (v, t) : s
 
 (===) :: Term -> Term -> Goal
 (===) t1 t2 = \(s, vc) -> case unify t1 t2 s of
-    [] -> []
-    s' -> return (s', vc)
+    Nothing -> []
+    Just s' -> return (s', vc)
 
-unify :: Term -> Term -> Subst -> Subst
+unify :: Term -> Term -> Subst -> Maybe Subst
 unify t1 t2 s = go (walk t1 s) (walk t2 s)
     where
-        go (Atom a1) (Atom a2) | a1 == a2 = s
-        go (Var v1) (Var v2) | v1 == v2 = s
-        go (Var v1) t2' = extS v1 t2' s
-        go t1' (Var v2) = extS v2 t1' s
-        go (Pair u1 u2) (Pair v1 v2) = unify u2 v2 (unify u1 v1 s)
-        go _ _ = []
+        go (Atom a1) (Atom a2) | a1 == a2 = return s
+        go (Var v1) (Var v2) | v1 == v2 = return s
+        go (Var v1) t2' = return $ extS v1 t2' s
+        go t1' (Var v2) = return $ extS v2 t1' s
+        go (Pair u1 u2) (Pair v1 v2) = unify u1 v1 s >>= unify u2 v2
+        go _ _ = mzero -- Short circuit if we fail to unify
 
 fresh :: (Term -> Goal) -> Goal
 fresh f = \(s, c) -> f (Var c) (s, c + 1)
