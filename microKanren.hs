@@ -116,22 +116,17 @@ tests = [ atomTest
                         (fresh (=== Atom "8"))
         fail1 = fresh (\a -> (a === Atom "8") `conj` (a === Atom "9"))
 
-cyclicState :: State
-cyclicState = ([ (0, Var 1), (1, Var 0) -- Our infinite cycle
-               , (2, Atom "1")
-               ], 3)
-
-cyclicTests :: [Goal]
-cyclicTests = [ canTest1
-              , takeS 2 <$> recurseDelayedFstTest -- This test terminates since recursive parts are delayed
-              , takeS 2 <$> recurseDelayedSndTest -- This test terminates since recursive parts are delayed
-              -- , takeS 2 <$> recurseFstTest -- This test never terminates
-              -- , takeS 2 <$> recurseSndTest -- This test never terminates
-              ]
+recursiveTests :: [Goal]
+recursiveTests = [ takeS 2 <$> recurseDelayedFstTest -- This test terminates since recursive parts are delayed
+                 , takeS 2 <$> recurseDelayedSndTest -- This test terminates since recursive parts are delayed
+                 -- , takeS 2 <$> recurseFstTest -- This test never terminates
+                 -- , takeS 2 <$> recurseSndTest -- This test never terminates
+                 ]
     where
-        canTest1 = Var 2 === Atom "1"
+        -- These tests fail because we did not make recursion explicit
         recurseFstTest = disj recurseFstTest (fresh (=== Atom "7"))
         recurseSndTest = disj (fresh (=== Atom "7")) recurseSndTest
+
         recurseDelayedFstTest = disj (delay recurseDelayedFstTest) (fresh (=== Atom "7"))
         recurseDelayedSndTest = disj (fresh (=== Atom "7")) (delay recurseDelayedSndTest)
 
@@ -150,5 +145,4 @@ runTests s (g:gs) = do
 main :: IO ()
 main = do
     runTests initialState tests
-    runTests cyclicState tests
-    runTests cyclicState cyclicTests
+    runTests initialState recursiveTests
