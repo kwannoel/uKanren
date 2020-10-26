@@ -3,10 +3,10 @@
 
 module Main where
 
-import           Control.Monad (mzero)
-import           Data.List     (transpose)
+import           Control.Applicative (Alternative (..))
+import           Control.Monad       (MonadPlus (..))
 
-type Goal = State -> [State]
+type Goal = State -> Stream State
 type State = (Subst, VariableCounter)
 type Subst = [(Var, Term)]
 type Var = Integer
@@ -16,6 +16,7 @@ data Term = Atom String
           | Var Var
           | Pair Term Term
           deriving Show
+
 
 walk :: Term -> Subst -> Term
 walk (Var v) s = case lookup v s of Nothing -> Var v
@@ -27,27 +28,66 @@ extS v t s = (v, t) : s
 
 (===) :: Term -> Term -> Goal
 (===) t1 t2 = \(s, vc) -> case unify t1 t2 s of
-    Nothing -> []
+    Nothing -> Nil
     Just s' -> return (s', vc)
 
 unify :: Term -> Term -> Subst -> Maybe Subst
 unify t1 t2 s = go (walk t1 s) (walk t2 s)
     where
-        go (Atom a1) (Atom a2) | a1 == a2 = return s
-        go (Var v1) (Var v2) | v1 == v2 = return s
-        go (Var v1) t2' = return $ extS v1 t2' s
-        go t1' (Var v2) = return $ extS v2 t1' s
+        go (Atom a1) (Atom a2) | a1 == a2 = Just s
+        go (Var v1) (Var v2) | v1 == v2 = Just s
+        go (Var v1) t2' = Just $ extS v1 t2' s
+        go t1' (Var v2) = Just $ extS v2 t1' s
         go (Pair u1 u2) (Pair v1 v2) = unify u1 v1 s >>= unify u2 v2
-        go _ _ = mzero -- Short circuit if we fail to unify
+        go _ _ = Nothing -- Short circuit if we fail to unify
 
 fresh :: (Term -> Goal) -> Goal
 fresh f = \(s, c) -> f (Var c) (s, c + 1)
 
 disj :: Goal -> Goal -> Goal
-disj g1 g2 = \s -> (concat . transpose) [g1 s, g2 s]
+disj g1 g2 = \s -> g1 s `mplus` g2 s
 
 conj :: Goal -> Goal -> Goal
 conj g1 g2 = \s -> g1 s >>= g2
+
+--------- Auxiliary functions and types
+
+data Stream a = Nil
+              | Cons a (Stream a)
+              | Delayed (Stream a) deriving (Eq, Show)
+
+instance Functor Stream where
+    fmap _ Nil          = Nil
+    fmap f (a `Cons` s) = f a `Cons` fmap f s
+    fmap f (Delayed s)  = Delayed (fmap f s)
+
+instance Alternative Stream where
+    empty = Nil
+    Nil <|> xs           = xs
+    (x `Cons` xs) <|> ys = x `Cons` (ys <|> xs)
+    Delayed xs <|> ys    = Delayed (ys <|> xs)
+
+instance Applicative Stream where
+    pure a = a `Cons` mzero
+    Nil <*> _            = Nil
+    _ <*> Nil            = Nil
+    (f `Cons` fs) <*> as = fmap f as `mplus` (fs <*> as)
+    Delayed fs <*> as    = Delayed (fs <*> as)
+
+instance Monad Stream where
+    return = pure
+    Nil >>= _         = Nil
+    x `Cons` xs >>= f = f x `mplus` (xs >>= f)
+    Delayed s >>= f   = Delayed (s >>= f)
+
+-- Interleaving rather than appending 2 streams
+instance MonadPlus Stream where
+    mzero = empty
+    mplus = (<|>)
+
+-- Annotate recursive goals with this
+delay :: Goal -> Goal
+delay = fmap Delayed
 
 --------- Tests
 initialState :: State
@@ -80,13 +120,23 @@ cyclicState = ([ (0, Var 1), (1, Var 0) -- Our infinite cycle
 
 cyclicTests :: [Goal]
 cyclicTests = [ canTest1
-              , take 2 <$> recurseSndTest
-              -- , recurseFstTest -- This test never terminates
+              , takeS 2 <$> recurseDelayedFstTest -- This test terminates since recursive parts are delayed
+              , takeS 2 <$> recurseDelayedSndTest -- This test terminates since recursive parts are delayed
+              -- , takeS 2 <$> recurseFstTest -- This test never terminates
+              -- , takeS 2 <$> recurseSndTest -- This test never terminates
               ]
     where
         canTest1 = Var 2 === Atom "1"
-        -- recurseFstTest = disj recurseFstTest (fresh (=== Atom "7"))
+        recurseFstTest = disj recurseFstTest (fresh (=== Atom "7"))
         recurseSndTest = disj (fresh (=== Atom "7")) recurseSndTest
+        recurseDelayedFstTest = disj (delay recurseDelayedFstTest) (fresh (=== Atom "7"))
+        recurseDelayedSndTest = disj (fresh (=== Atom "7")) (delay recurseDelayedSndTest)
+
+takeS :: Int -> Stream a -> Stream a
+takeS 0 _             = Nil
+takeS n Nil           = Nil
+takeS n (Delayed s)   = Delayed (takeS n s)
+takeS n (a `Cons` as) = a `Cons` takeS (n - 1) as
 
 runTests :: State -> [Goal] -> IO ()
 runTests _ [] = return ()
