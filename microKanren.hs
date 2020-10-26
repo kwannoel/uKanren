@@ -68,10 +68,10 @@ instance Alternative Stream where
     Delayed xs <|> ys    = Delayed (ys <|> xs)
 
 instance Applicative Stream where
-    pure a = a `Cons` mzero
+    pure a = a `Cons` empty
     Nil <*> _            = Nil
     _ <*> Nil            = Nil
-    (f `Cons` fs) <*> as = fmap f as `mplus` (fs <*> as)
+    (f `Cons` fs) <*> as = fmap f as <|> (fs <*> as)
     Delayed fs <*> as    = Delayed (fs <*> as)
 
 instance Monad Stream where

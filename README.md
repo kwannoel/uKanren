@@ -126,9 +126,9 @@ What are our solutions?
 
 #### Allow users to annotate goals
 
-We can explicitly annotate `goals` which recurse indefinitely as `Immature`.
+We can explicitly annotate `goals` which recurse indefinitely as `Delayed`.
 
-We then greedily get the `goals` we can get, and come back to the `Immature` goals after.
+We then greedily get the `goals` we can get, and come back to the `Delayed` goals after.
 
 However, this requires the `user` to do so, if they incorrectly annotate their expressions, it will still recurse indefinitely.
 
