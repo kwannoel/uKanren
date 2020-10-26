@@ -56,17 +56,30 @@ data Stream a = Nil
               | Cons a (Stream a)
               | Delayed (Stream a) deriving (Eq, Show)
 
-instance Functor Stream where
-    fmap _ Nil          = Nil
-    fmap f (a `Cons` s) = f a `Cons` fmap f s
-    fmap f (Delayed s)  = Delayed (fmap f s)
+instance Monad Stream where
+    return = pure
+    Nil >>= _         = Nil
+    x `Cons` xs >>= f = f x `mplus` (xs >>= f)
+    Delayed s >>= f   = Delayed (s >>= f)
 
+instance MonadPlus Stream where
+    mzero = empty
+    mplus = (<|>)
+
+-- Interleaving rather than appending 2 streams
 instance Alternative Stream where
     empty = Nil
     Nil <|> xs           = xs
     (x `Cons` xs) <|> ys = x `Cons` (ys <|> xs)
     Delayed xs <|> ys    = Delayed (ys <|> xs)
 
+-- Unused, just to satisfy class constraints for Monad
+instance Functor Stream where
+    fmap _ Nil          = Nil
+    fmap f (a `Cons` s) = f a `Cons` fmap f s
+    fmap f (Delayed s)  = Delayed (fmap f s)
+
+-- Unused, just to satisfy class constraints for Monad
 instance Applicative Stream where
     pure a = a `Cons` empty
     Nil <*> _            = Nil
@@ -74,16 +87,6 @@ instance Applicative Stream where
     (f `Cons` fs) <*> as = fmap f as <|> (fs <*> as)
     Delayed fs <*> as    = Delayed (fs <*> as)
 
-instance Monad Stream where
-    return = pure
-    Nil >>= _         = Nil
-    x `Cons` xs >>= f = f x `mplus` (xs >>= f)
-    Delayed s >>= f   = Delayed (s >>= f)
-
--- Interleaving rather than appending 2 streams
-instance MonadPlus Stream where
-    mzero = empty
-    mplus = (<|>)
 
 -- Annotate recursive goals with this
 delay :: Goal -> Goal
