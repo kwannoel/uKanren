@@ -69,58 +69,9 @@ A non-negative integer. It initializes as `0`.
 
 ### Disjunction
 
-When we try to perform a disjunction with a non-terminal goal and a terminal goal, we should still get results.
+### Problem
 
-``` haskell
-nonTermG = nonTermG `disj` (fresh (=== Atom "7"))
-```
-
-In principle, the above should be valid. Although `nonTermG` never terminates, the second goal succeeds, so `disj` should succeed by definition.
-
-If we look into implementation however, the above evaluates to this when applied to a state, `s`:
-
-``` haskell
-nonTermG = nonTermG `disj` (fresh (=== Atom "7"))
-
-nonTermG s@(subst, vc) = (concat . transpose) [nonTermG s, (Var vc === sc) (subst, vc + 1)] -- (1)
-```
-
-To deconstruct `nonTermG`, we have to try to expand it to the first term at least in the output state.
-
-Deconstruction recurses indefinitely however, continuing from (1):
-
-``` haskell
-nonTermG s@(subst, vc) = (concat . transpose) [nonTermG s, (Var vc === sc) (subst, vc + 1)] -- (1)
--- Hiding non important parts to make this apparent, just showing the shape of the recursion
-nonTermG s = f [nonTermG s, term]
-nonTermG s = f [f [nonTermG s, term], term]
-nonTermG s = f [f [f [nonTermG s, term], term], term]
--- ...
-```
-
-Hence this never gives us a result.
-
-If we reversed it however, we would still be able to get results:
-
-``` haskell
-nonTermG = (fresh (=== Atom "7")) `disj` nonTermG 
-nonTermG s@(subst, vc) = (concat . transpose) [(Var vc === sc) (subst, vc + 1), nonTermG s]
--- Hiding non important parts to make this apparent
-nonTermG s = f [terminal, nonTermG s]
-nonTermG s = f [terminal, f [terminal, nonTermG s]]
-nonTermG s = f [terminal, f [terminal, nonTermG s]]
-nonTermG s = (terminal: head nonTermG s) ++ f [[], tail (nonTermG s)]
-nonTermG s = (terminal: [head (nonTermG s)]) ++ f [[], tail (nonTermG s)]
-nonTermG s = [terminal, terminal] ++ f [[], tail (nonTermG s)]
-
--- For reference, definition of transpose
-tranpose :: [[a]] -> [[a]]
-transpose [] = []
-transpose ([] : xss) = transpose xss
-transpose ((x:xs) : xss) = (x : [h | (h: _) <- xss] ): transpose (xs : [ t | (_:t) <- xss])
-```
-
-What are our solutions?
+TODO
 
 ### Solutions
 
