@@ -2,6 +2,12 @@
 
 A minimal implementation of `microKanren`
 
+To run tests:
+
+``` haskell
+runghc microKanren.hs
+```
+
 # References
 
 http://webyrd.net/scheme-2013/papers/HemannMuKanren2013.pdf

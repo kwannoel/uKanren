@@ -1,4 +1,19 @@
-module Main where
+module MicroKanren ( Stream (..)
+                   , Goal
+                   , State
+                   , Subst
+                   , Term (..)
+                   , Var
+                   , VariableCounter
+                   , walk
+                   , extS
+                   , (===)
+                   , unify
+                   , fresh
+                   , disj
+                   , conj
+                   , delay
+                   ) where
 
 import           Control.Applicative (Alternative (..))
 import           Control.Monad       (MonadPlus (..))
@@ -115,8 +130,10 @@ tests = [ atomTest
         fail1 = fresh (\a -> (a === Atom "8") `conj` (a === Atom "9"))
 
 recursiveTests :: [Goal]
-recursiveTests = [ takeS 2 <$> recurseDelayedFstTest -- This test terminates since recursive parts are delayed
-                 , takeS 2 <$> recurseDelayedSndTest -- This test terminates since recursive parts are delayed
+recursiveTests = [ takeS 5 <$> recurseDelayedFstTest -- This test terminates since recursive parts are delayed
+                 , takeS 5 <$> recurseDelayedSndTest -- This test terminates since recursive parts are delayed
+                 , takeS 5 <$> recurseDelayedBothFstTest
+                 , takeS 5 <$> recurseDelayedBothSndTest
                  -- , takeS 2 <$> recurseFstTest -- This test never terminates
                  -- , takeS 2 <$> recurseSndTest -- This test never terminates
                  ]
@@ -127,6 +144,10 @@ recursiveTests = [ takeS 2 <$> recurseDelayedFstTest -- This test terminates sin
 
         recurseDelayedFstTest = disj (delay recurseDelayedFstTest) (fresh (=== Atom "7"))
         recurseDelayedSndTest = disj (fresh (=== Atom "7")) (delay recurseDelayedSndTest)
+
+        -- Delay both
+        recurseDelayedBothFstTest = disj (delay recurseDelayedBothFstTest) (delay $ fresh (=== Atom "7"))
+        recurseDelayedBothSndTest = disj (delay $ fresh (=== Atom "7")) (delay recurseDelayedBothSndTest)
 
 takeS :: Int -> Stream a -> Stream a
 takeS 0 _             = Nil
