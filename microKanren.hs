@@ -62,6 +62,7 @@ instance Monad Stream where
     x `Cons` xs >>= f = f x `mplus` (xs >>= f)
     Delayed s >>= f   = Delayed (s >>= f)
 
+-- We can reuse Alternative instances, due to it being a class constraint for MonadPlus
 instance MonadPlus Stream where
     mzero = empty
     mplus = (<|>)
@@ -73,7 +74,7 @@ instance Alternative Stream where
     (x `Cons` xs) <|> ys = x `Cons` (ys <|> xs)
     Delayed xs <|> ys    = Delayed (ys <|> xs)
 
--- Unused, just to satisfy class constraints for Monad
+-- Unused, just to satisfy class constraints for Applicative
 instance Functor Stream where
     fmap _ Nil          = Nil
     fmap f (a `Cons` s) = f a `Cons` fmap f s
