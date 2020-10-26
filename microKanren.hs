@@ -134,6 +134,8 @@ recursiveTests = [ takeS 5 <$> recurseDelayedFstTest -- This test terminates sin
                  , takeS 5 <$> recurseDelayedSndTest -- This test terminates since recursive parts are delayed
                  , takeS 5 <$> recurseDelayedBothFstTest
                  , takeS 5 <$> recurseDelayedBothSndTest
+                 , takeS 5 <$> recurseDelayedEverythingFst
+                 , takeS 5 <$> recurseDelayedEverythingSnd
                  -- , takeS 2 <$> recurseFstTest -- This test never terminates
                  -- , takeS 2 <$> recurseSndTest -- This test never terminates
                  ]
@@ -148,6 +150,10 @@ recursiveTests = [ takeS 5 <$> recurseDelayedFstTest -- This test terminates sin
         -- Delay both
         recurseDelayedBothFstTest = disj (delay recurseDelayedBothFstTest) (delay $ fresh (=== Atom "7"))
         recurseDelayedBothSndTest = disj (delay $ fresh (=== Atom "7")) (delay recurseDelayedBothSndTest)
+
+        -- Delay everything
+        recurseDelayedEverythingFst = delay $ disj recurseDelayedEverythingFst (fresh (=== Atom "7"))
+        recurseDelayedEverythingSnd = delay $ disj (fresh (=== Atom "7")) recurseDelayedEverythingSnd
 
 takeS :: Int -> Stream a -> Stream a
 takeS 0 _             = Nil
