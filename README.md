@@ -94,3 +94,9 @@ This is a relatively simple solution to implement however.
 #### Check during compile time 
 
 Pending investigation, maybe we could introduce a typelevel parameter for variables, to include `Nat` in their parameters.
+
+## Other things todo
+
+nix microKanren?
+
+microKanren on Haskell's typelevel
