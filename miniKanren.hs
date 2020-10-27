@@ -12,15 +12,15 @@ import           MicroKanren (Goal, State, Stream (..), Subst, Term (..), Var,
 
 -- | Disj' provides us a way to safely disj goals which are recursive
 disj' :: Goal -> Goal -> Goal
-disj' = delay disj
+disj' g1 g2 = delay $ disj g1 g2
 
 -- | Conj' provides us a way to safely conj goals which are recursive
 conj' :: Goal -> Goal -> Goal
-conj' = delay conj
+conj' g1 g2 = delay $ conj g1 g2
 
--- |
+-- | Conde - satisfy list of goals
 conde :: [Goal] -> Goal
-conde = undefined
+conde = foldr conj' $ const Nil
 
 main :: IO ()
 main = do
