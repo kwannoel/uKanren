@@ -27,7 +27,7 @@ type VariableCounter = Integer
 data Term = Atom String
           | Var Var
           | Pair Term Term
-          deriving Show
+          deriving (Eq, Show)
 
 
 walk :: Term -> Subst -> Term
@@ -35,8 +35,9 @@ walk (Var v) s = case lookup v s of Nothing -> Var v
                                     Just a  -> walk a s
 walk t _ = t
 
-extS :: Var -> Term -> Subst -> Subst
-extS v t s = (v, t) : s
+extS :: Var -> Term -> Subst -> Maybe Subst
+extS v t s | occurs v t s = Nothing
+           | otherwise = Just $ (v, t) : s
 
 (===) :: Term -> Term -> Goal
 (===) t1 t2 = \(s, vc) -> case unify t1 t2 s of
@@ -48,10 +49,16 @@ unify t1 t2 s = go (walk t1 s) (walk t2 s)
     where
         go (Atom a1) (Atom a2) | a1 == a2 = Just s
         go (Var v1) (Var v2) | v1 == v2 = Just s
-        go (Var v1) t2' = Just $ extS v1 t2' s
-        go t1' (Var v2) = Just $ extS v2 t1' s
+        go (Var v1) t2' = extS v1 t2' s
+        go t1' (Var v2) = extS v2 t1' s
         go (Pair u1 u2) (Pair v1 v2) = unify u1 v1 s >>= unify u2 v2
         go _ _ = Nothing -- Short circuit if we fail to unify
+
+occurs :: Var -> Term -> Subst -> Bool
+occurs v t s = case walk t s of Var tv -> tv == v
+                                Pair s1 s2 -> occurs v s1 s
+                                           || occurs v s2 s
+                                _ -> False
 
 fresh :: (Term -> Goal) -> Goal
 fresh f = \(s, c) -> f (Var c) (s, c + 1)
@@ -106,6 +113,7 @@ delay :: Goal -> Goal
 delay = fmap Delayed
 
 --------- Tests
+
 initialState :: State
 initialState = ([], 0)
 
