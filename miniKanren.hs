@@ -22,6 +22,8 @@ conj' g1 g2 = delay $ conj g1 g2
 conde :: [Goal] -> Goal
 conde = foldr conj' $ const Nil
 
+-- | Fresh'
+
 main :: IO ()
 main = do
     putStrLn "Hello World!"

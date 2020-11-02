@@ -1,5 +1,9 @@
 # Description
 
+Many thanks to [William Byrd](https://github.com/webyrd) and [Jason Hemann](https://github.com/jasonhemann) for reviewing this implementation and providing links to useful resources!
+
+---
+
 A minimal implementation of `microKanren`
 
 To run tests:
