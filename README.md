@@ -79,25 +79,17 @@ A non-negative integer. It initializes as `0`.
 
 ### Disjunction
 
+TODO
+
 ### Problem
 
 TODO
 
 ### Solutions
 
-#### Allow users to annotate goals
+#### All combinators should be wrapped with delay
 
-We can explicitly annotate `goals` which recurse indefinitely as `Delayed`.
-
-We then greedily get the `goals` we can get, and come back to the `Delayed` goals after.
-
-However, this requires the `user` to do so, if they incorrectly annotate their expressions, it will still recurse indefinitely.
-
-This is a relatively simple solution to implement however.
-
-#### Check during compile time 
-
-Pending investigation, maybe we could introduce a typelevel parameter for variables, to include `Nat` in their parameters.
+TODO
 
 ## Other things todo
 

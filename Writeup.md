@@ -1,6 +1,6 @@
 # Write up
 
-## The original keynote I watched 
+## The original keynote we watched 
 
 [William E Byrd - Relational Interpreters, Program Synthesis, Barliman](https://www.youtube.com/watch?v=RVDCRlW1f1Y)
 
@@ -18,9 +18,11 @@
   
   - Functionality is implicitly produced from specifications
 
-## Philosophy of miniKanren family of languages
+## Benefits of miniKanren family of languages
 
-Easy to extend and modify, easily write declarative programs.
+1. Easy to extend and modify.
+
+2. Make writing declarative programs easy, imperative programs hard.
 
 ## Using microKanren
 
@@ -30,7 +32,9 @@ Demonstrate a BST solver with miniKanren.
 
 ## Differences with Prolog
 
-- Interleaving complete search
+- Interleaving complete search VS DFS
+
+- Cut and other effectful operators
 
 ## Implementation
 
