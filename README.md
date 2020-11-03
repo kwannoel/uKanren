@@ -6,11 +6,17 @@ Many thanks to [William Byrd](https://github.com/webyrd) and [Jason Hemann](http
 
 A minimal implementation of `microKanren`
 
-To run tests:
+- To run tests:
 
-``` haskell
-runghc microKanren.hs
-```
+  ``` haskell
+  runghc microKanren.hs
+  ```
+
+- To generate slides:
+
+  ``` shell
+  pandoc -t revealjs -s -o index.html slides.md -V revealjs-url=https://unpkg.com/reveal.js@3.9.2/
+  ```
 
 # References
 
