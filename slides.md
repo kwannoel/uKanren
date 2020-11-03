@@ -117,9 +117,11 @@ updatedState = ([(Var 0, Atom "1")], 1)
 
 There can be many possible combinations of results which satisfy the constraints.
 
-For example, given the following constraint for `X`:
+## Example
 
-```
+Given the following constraint for `X`:
+
+``` haskell
 X = 1 ∨ X = 2
 ```
 
@@ -135,7 +137,9 @@ X := 2
 
 Hence we represent these possibilities in a `Stream`.
 
-Haskell is lazy by default, in the event answers continue indefinitely: `[Ans1, Ans2, ..]`,
+## Laziness of Haskell
+
+In the event answers continue indefinitely: `[Ans1, Ans2, ..]`,
 it doesn't matter, since we can just take as many items as we require and leave the rest unevaluated.
 
 In that case why didn't we just use lists (`[a]`)?
@@ -146,6 +150,8 @@ Looking at our `Stream` definition, we realize it is essentially the same as a `
 with an additional possibility: 
 
 `Delay` which indicates the `Stream` should be `Delayed` for evaluation at a future time.
+
+## Stream definition
 
 ```haskell
 data Stream a = Nil
@@ -161,9 +167,11 @@ To understand why this is needed, let's talk about `disj`.
 
 First we need to understand what `disj` does.
 
-`disj` allows us to perform fair complete search of our results, 
+`disj` allows us to perform fair complete search of our results.
 
-E.g. if we had 2 result streams:
+## Example
+
+if we had 2 result streams:
 
 ```haskell
 s0 = [a, b, c]
@@ -175,6 +183,8 @@ s1 = [x, y, z]
 ```haskell
 s_merged = [a, x, b, y, c, z]
 ```
+
+## Under the hood
 
 Under the hood it does something like this:
 
@@ -188,7 +198,9 @@ interleave (x:xs) ys = x : interleave ys xs
 > [1,2,2,3,3,4]
 ```
 
-**Which requires us to deconstruct at least one of its arguments**, e.g. `x` in `(x:xs)`.
+## Observation
+
+**We can see disj requires us to deconstruct at least one of its arguments**, e.g. `x` in `(x:xs)`.
 
 We can then ignore everything else, until we force further evaluation:
 
@@ -202,7 +214,9 @@ x = _
 x = 1 : _
 ```
 
-So far so good, until we recursively define a goal:
+## Recursive goals
+
+So far so good, until we recursively define a goal
 
 ```haskell
 -- |
@@ -216,16 +230,24 @@ goalT :: Goal
 goalT = return
 ```
 
-Inutitively, this should work fine for us, as `disj` should behave like so:
+Inutitively, this should work fine for us, as `disj` should behave like so...
 
-- If one of its goals never terminates, and the other one does, 
+## Expected behaviors of disj
+
+## Terminal V NonTerminal goals 
+
+If one of its goals never terminates, and the other one does, 
   it should return the results from the terminal goal.
   
   This is because `disj` works like disjunction, only one of the goals need to succeed.
   
   Since `goalT` terminates, we should just return the result of `goalT`.
   
-- `disj` should not care about the order of its arguments, relations are commutative.
+## Ordering of arguments
+
+`disj` should not care about the order of its arguments, relations are commutative.
+
+## In practice
 
 In practice however, the following occurs:
   
@@ -236,11 +258,15 @@ goalR s = (goalR `disj`  goalT) s
         -- We evaluate the first argument, in order to deconstruct it
         = (goalR `disj` goalT) s `mplus` goalT s
         = (goalR s `mplus` goalT s) `mplus` goalT s
-        = ((goalR s `mplus` goalT s) `mplus` goalT s) `mplus` goalT s
+        = ((goalR s `mplus` goalT s) 
+            `mplus` goalT s) 
+                `mplus` goalT s
         = ...
 ```
 
 As we can see, we are never able to extract the head of `goalR s` due to its recursive definition.
+
+## Swapping arguments
 
 However, if we swapped the arguments around:
 
@@ -250,6 +276,8 @@ goalR s = (goalT `disj`  goalR) s
 ```
 
 Since `goalT s` terminates, we would be able ignore the recursive part, until forced to yield more results.
+
+## User intervention!
 
 This requires the user to manually push the recursive parts to the rightmost argument, which is error-prone.
 
@@ -267,7 +295,11 @@ goalR s = Delayed (goalR s) `mplus` goalT s
 goalR s = Delayed (goalT s `mplus` goalR s)
 ```
 
+## Evaluation
+
 This can then be evaluated since `goalT s` is terminal, and `mplus` forces on its first argument.
+
+## User intervention!
 
 This approach is still error prone however, the responsibility still lies with users to wrap the recursive parts in a `Delayed` data constructor.
 
@@ -281,11 +313,15 @@ That way, whenever a goal is recursively defined, it always evaluates to a delay
 
 To make that explicit, let's see the following expansion:
 
+## Expansion
+
 ```haskell
 goalR s = Delayed (goalR s `mplus` goalT s)
         = Delayed ((Delayed (goalR s `mplus` goalT s)) `mplus` goalT s)
         = Delayed (Delayed (goalT s `mplus` goalR s `mplus` goalT s))
 ```
+
+## What does it mean?
 
 The essence of it is that goalT s is not recursively defined, so we will always be able to deconstruct it.
 
