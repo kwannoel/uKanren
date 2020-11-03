@@ -96,3 +96,6 @@ TODO
 nix microKanren?
 
 microKanren on Haskell's typelevel
+
+Use a Free DSL instead: e.g. `Conj` vs `conj`. 
+We can include side effects such as `delay` in our interpreter.

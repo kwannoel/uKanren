@@ -13,6 +13,9 @@ module MicroKanren ( Stream (..)
                    , disj
                    , conj
                    , delay
+                   -- | Utilities
+                   , prettyPrintResult
+                   , prettyPrintResults
                    ) where
 
 import           Control.Applicative (Alternative (..))
@@ -108,9 +111,20 @@ instance Applicative Stream where
     Delayed fs <*> as    = Delayed (fs <*> as)
 
 
--- Annotate recursive goals with this
+-- | Annotate recursive goals with this
 delay :: Goal -> Goal
 delay = fmap Delayed
+
+--------- Pretty printing
+
+prettyPrintResults :: Stream State -> String
+prettyPrintResults Nil = ""
+prettyPrintResults (Delayed s) = prettyPrintResults s
+prettyPrintResults (Cons s ss) = unlines [prettyPrintResult $ fst s, prettyPrintResults ss]
+
+prettyPrintResult :: Subst -> String
+prettyPrintResult = unlines . fmap showBinding
+  where showBinding (v, t) = unwords ["Var", show v, ":=", show t]
 
 --------- Tests
 
