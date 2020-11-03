@@ -8,14 +8,18 @@ A minimal implementation of `microKanren`
 
 - To run tests:
 
-  ``` haskell
-  runghc microKanren.hs
+  [Install haskell toolchain](https://www.haskell.org/platform/)
+
+  ``` shell
+  make tests
   ```
 
 - To generate slides:
 
+  [Install pandoc](https://pandoc.org/installing.html)
+
   ``` shell
-  pandoc -t revealjs -s -o index.html slides.md -V revealjs-url=https://unpkg.com/reveal.js@3.9.2/
+  make slides
   ```
 
 # References
