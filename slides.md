@@ -1,4 +1,4 @@
-# Write up
+% MicroKanren
 
 ## The original keynote
 
@@ -34,9 +34,9 @@
 
 ## Implementation
 
-### How do we use a miniKanren program?
+## How do we use a miniKanren program?
 
-We construct a goal we want to satisfy:
+## We construct a goal we want to satisfy
 
 ``` haskell
 goal :: Goal
@@ -46,7 +46,7 @@ goal = fresh $
             `conj` ((y === Atom "a") `disj` (y === Atom "b"))
 ```
 
-And execute it against out initial state:
+## And execute it against out initial state
 
 ```haskell
 initialState :: State
@@ -59,7 +59,7 @@ displayResults :: IO ()
 displayResults = putStrLn $ prettyPrintResults results
 ```
 
-*Output*
+## Output
 
 ```haskell
 Var 1 := Atom "a"
@@ -77,9 +77,13 @@ Var 0 := Atom "2"
 
 As you can see, we will get all associations which satisfy the stated constraints in the `goal`.
 
-### How do we bind new variables?
+## How do we bind new variables?
 
 `fresh` does this implicitly for us, such that we do not need to **name our bindings**.
+
+## Let's see how this is done...
+
+## By looking in State
 
 Inside our `State`, we have an implicit parameter `VariableCounter`:
 ```haskell
@@ -88,8 +92,20 @@ type State = (Subst, VariableCounter)
 
 Each time `fresh` is applied to some `State`, we increment the `VariableCounter` and use it to generate
 unique identifiers for variables, e.g. `Var 0, Var 1, ...`.
-  
-### What do the logical operators do?
+
+## Example
+
+```haskell
+initialState = ([], 0)
+```
+
+Gets updated to...
+
+```haskell
+updatedState = ([(Var 0, Atom "1")], 1)
+```
+ 
+## What do the logical operators do?
 
 | Operators | Description         |
 |-----------|---------------------|
@@ -97,7 +113,7 @@ unique identifiers for variables, e.g. `Var 0, Var 1, ...`.
 | `conj`    | Conjunction / AND   |
 | `disj`    | Disjunction / OR    |
 
-### Why represent results as a Stream of States?
+## Why represent results as a Stream of States?
 
 There can be many possible combinations of results which satisfy the constraints.
 
@@ -124,7 +140,7 @@ it doesn't matter, since we can just take as many items as we require and leave 
 
 In that case why didn't we just use lists (`[a]`)?
 
-#### Defining Streams
+## Defining Streams
 
 Looking at our `Stream` definition, we realize it is essentially the same as a `list`,
 with an additional possibility: 
@@ -141,7 +157,7 @@ data Stream a = Nil
 
 To understand why this is needed, let's talk about `disj`.
 
-#### Usage of disjunction
+## Usage of disjunction
 
 First we need to understand what `disj` does.
 
@@ -239,7 +255,7 @@ This requires the user to manually push the recursive parts to the rightmost arg
 
 By changing the data structure to include a `Delay`, we can force switching.
 
-#### Using Delay to force switching 
+## Using Delay to force switching 
 
 ```haskell
 goalR s = Delayed (goalR s) `mplus` goalT s
@@ -257,7 +273,7 @@ This approach is still error prone however, the responsibility still lies with u
 
 If we extend the idea to make `Delayed` an inherent / implicit part of the recursive definition of the recursive goal, `goalR` we can avoid this.
 
-#### Encoding Delay into microKanren
+## Encoding Delay into microKanren
 
 We wrap all goal constructors, `disj`, `conj`, `fresh`, `(===)` in `Delayed`.
 
