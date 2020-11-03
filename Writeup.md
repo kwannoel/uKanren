@@ -1,6 +1,6 @@
 # Write up
 
-## The original keynote we watched 
+## The original keynote
 
 [William E Byrd - Relational Interpreters, Program Synthesis, Barliman](https://www.youtube.com/watch?v=RVDCRlW1f1Y)
 
@@ -79,7 +79,7 @@ As you can see, we will get all associations which satisfy the stated constraint
 
 ### How do we bind new variables?
 
-`fresh` does this implicitly for us, such that we do not need to **name** our bindings.
+`fresh` does this implicitly for us, such that we do not need to **name our bindings**.
 
 Inside our `State`, we have an implicit parameter `VariableCounter`:
 ```haskell
