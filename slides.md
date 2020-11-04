@@ -34,6 +34,16 @@
 
 ## Implementation
 
+## Minimal language
+
+- MicroKanren's API has 4 core operators
+```haskell
+fresh :: Goal -- ^ Constructs a new variable binding
+conj  :: Goal -- ^ Logical operator - Conjunction
+disj  :: Goal -- ^ Logical operator - Disjunction
+(===) :: Goal -- ^ Logical operator - Equality
+```
+
 ## How do we use a miniKanren program?
 
 ## We construct a goal we want to satisfy
@@ -105,13 +115,6 @@ Gets updated to...
 updatedState = ([(Var 0, Atom "1")], 1)
 ```
  
-## What do the logical operators do?
-
-| Operators | Description         |
-|-----------|---------------------|
-| `===`     | Equality constraint |
-| `conj`    | Conjunction / AND   |
-| `disj`    | Disjunction / OR    |
 
 ## Why represent results as a Stream of States?
 
