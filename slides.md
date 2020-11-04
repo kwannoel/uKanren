@@ -403,17 +403,29 @@ More generally, as long as one of the goals are not recursively defined, we will
 
 - Quines
 
+## SAT Solver
+
+- Boolean Satisfiability Problem: check if a Boolean expression is solvable
+- NP-hard, unless in disjunctive normal form, e.g.:
+
+  `(A ∧ B) ∨ (¬B ∧ C ∧ D)`
+
+- Naturally, doable in microKanren.
+
 ## Extensions
 
-[MiniKanren](http://minikanren.org/)
+- [MiniKanren](http://minikanren.org/)
+  - `conde::[Goal]->Goal`: satisfy a list of goals
+  - `run`: specify variables of interest
+  - etc.
+- [Temporal logic programming](https://github.com/nathanielrb/ftmicroKanren)
+- [Constraint logic programming (cKanren)](https://github.com/calvis/cKanren)
+- [Probabilistic logic programming (probKanren)](https://github.com/webyrd/probKanren)
+- [Nominal logic programming (alphaKanren)](https://github.com/webyrd/alphaKanren)
 
-- extending to support miniKanren
 
-**TODO** provide examples for the following:
+<!-- - extending to support miniKanren -->
 
-- Disequality operator
+<!-- **TODO** provide examples for the following: -->
 
-- Temporal logic programming
-- Constraint logic programming
-- Probabilistic logic programming
-- Nominal logic programming
+<!-- - Disequality operator -->
