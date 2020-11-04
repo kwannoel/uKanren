@@ -263,7 +263,7 @@
 </section>
 <section id="observation" class="slide level2">
 <h2>Observation</h2>
-<p><strong>We can see disj requires us to deconstruct at least one of its arguments</strong>, e.g. <code>x</code> in <code>(x:xs)</code>.</p>
+<p><strong>We can see disj requires us to deconstruct at least one of its arguments</strong>, e.g. <code>x</code> in <code>(x:xs)</code>.</p>
 <p>We can then ignore everything else, until we force further evaluation:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span><span class="ot"> x ::</span> [<span class="dt">Int</span>]; x <span class="ot">=</span> interleave [<span class="dv">1</span><span class="op">..</span>] [<span class="dv">2</span>,<span class="dv">4</span><span class="op">..</span>]</span>
 <span id="cb14-2"><a href="#cb14-2"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span> <span class="op">:</span>sprint x</span>
