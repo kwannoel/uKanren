@@ -109,3 +109,15 @@ microKanren on Haskell's typelevel
 
 Use a Free DSL instead: e.g. `Conj` vs `conj`. 
 We can include side effects such as `delay` in our interpreter.
+
+## Further reading
+
+### Understanding program synthesis
+
+http://webyrd.net/quines/quines.pdf
+
+https://github.com/webyrd/2012-scheme-workshop-quines-paper-code
+
+https://dl.acm.org/doi/10.1145/3110252
+
+http://io.livecode.ch/learn/gregr/icfp2017-artifact-auas7pp

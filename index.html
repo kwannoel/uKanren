@@ -195,7 +195,7 @@
 <h2>By looking in State</h2>
 <p>Inside our <code>State</code>, we have an implicit parameter <code>VariableCounter</code>:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">type</span> <span class="dt">State</span> <span class="ot">=</span> (<span class="dt">Subst</span>, <span class="dt">VariableCounter</span>)</span></code></pre></div>
-<p>Each time <code>fresh</code> is applied to some <code>State</code>, we increment the <code>VariableCounter</code> and use it to generate unique identifiers for variables, e.g. <code>Var 0, Var 1, ...</code>.</p>
+<p>Each time <code>fresh</code> is applied to some <code>State</code>, we increment the <code>VariableCounter</code> and use it to generate unique identifiers for variables, e.g. <code>Var 0, Var 1, ...</code>.</p>
 </section>
 <section id="example" class="slide level2">
 <h2>Example</h2>
