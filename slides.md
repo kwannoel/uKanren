@@ -3,7 +3,7 @@
 ## MicroKanren
 Parsing & Implementation
 
-by Noel, E-liang and Mayank
+by Noel, E-Liang and Mayank
 
 ## Based on The original keynote
 
@@ -17,10 +17,6 @@ by Noel, E-liang and Mayank
 
   - We get the exact properties we ask for
   
-  - Common examples: Spreadsheet programming, list comprehensions
-
-- Program synthesis
-
   - Generating functions by just talking about inputs and outputs
   
   - Functionality is implicitly produced from specifications
@@ -50,12 +46,15 @@ by Noel, E-liang and Mayank
 
 2. Make writing declarative programs easy, imperative programs hard.
 
+## Benefits (Contd)
+
 3. You can pick your poison!
     - miniKaren has been implemented in multiple host languages - Scheme, Haskell, JavaScript, OCaml, Ruby, and our favourite, PHP.
 
 ## Differences with Prolog
 
-- Interleaving complete search VS DFS
+- Interleaving complete search v/s DFS
+
 
 - Handling "procedural" or "effectual" operators
 
@@ -69,6 +68,8 @@ non_terminating_rule(X) :- non_terminating_rule(Y) ; terminating_fact(Y)
 ```
 
 - Expected: termination.
+
+## Interleaving (Contd)
 
 - Prolog (DFS-implementation): goes into an infinite recursion, doesn't terminate. 
 
@@ -84,6 +85,8 @@ non_terminating_rule(X) :- non_terminating_rule(Y) ; terminating_fact(Y)
 
 - Why is it considered a side effect?
    - Instead operating as a logical operator, it interferes with the solver itself by changing the way we unify our results.
+
+## Procedural Side-Effects
 
 - another culprit: `retract`
    - which allows you to remove a fact / rule in prolog db, during execution.

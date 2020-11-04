@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="https://unpkg.com/reveal.js@3.9.2//css/reset.css">
-  <link rel="stylesheet" href="https://unpkg.com/reveal.js@3.9.2//css/reveal.css">
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@3.9.2//dist/reset.css">
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@3.9.2//dist/reveal.css">
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -78,19 +78,9 @@
     code span.va { color: #19177c; } /* Variable */
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
-  <link rel="stylesheet" href="https://unpkg.com/reveal.js@3.9.2//css/theme/black.css" id="theme">
-  <!-- Printing and PDF exports -->
-  <script>
-    var link = document.createElement( 'link' );
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = window.location.search.match( /print-pdf/gi ) ? 'https://unpkg.com/reveal.js@3.9.2//css/print/pdf.css' : 'https://unpkg.com/reveal.js@3.9.2//css/print/paper.css';
-    document.getElementsByTagName( 'head' )[0].appendChild( link );
-  </script>
-  <!--[if lt IE 9]>
-  <script src="https://unpkg.com/reveal.js@3.9.2//lib/js/html5shiv.js"></script>
-  <![endif]-->
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@3.9.2//dist/theme/black.css" id="theme">
 </head>
 <body>
   <div class="reveal">
@@ -103,7 +93,7 @@
 <section id="microkanren" class="slide level2">
 <h2>MicroKanren</h2>
 <p>Parsing &amp; Implementation</p>
-<p>by Noel, E-liang and Mayank</p>
+<p>by Noel, E-Liang and Mayank</p>
 </section>
 <section id="based-on-the-original-keynote" class="slide level2">
 <h2>Based on The original keynote</h2>
@@ -116,10 +106,6 @@
 <ul>
 <li><p>Only talk about the properties of our programs</p></li>
 <li><p>We get the exact properties we ask for</p></li>
-<li><p>Common examples: Spreadsheet programming, list comprehensions</p></li>
-</ul></li>
-<li><p>Program synthesis</p>
-<ul>
 <li><p>Generating functions by just talking about inputs and outputs</p></li>
 <li><p>Functionality is implicitly produced from specifications</p></li>
 </ul></li>
@@ -147,13 +133,18 @@
 <section id="benefits-of-minikanren-family-of-languages" class="slide level2">
 <h2>Benefits of miniKanren family of languages</h2>
 <ol type="1">
-<li><p>Easy to extend and modify.</p>
+<li>Easy to extend and modify.
 <ul>
 <li>extended to logic programming (constraint, nominal and probabilistic), and tabling</li>
 <li>reason: the core takes just 2 A4 pages to implement (which we did!)</li>
 </ul></li>
-<li><p>Make writing declarative programs easy, imperative programs hard.</p></li>
-<li><p>You can pick your poison!</p>
+<li>Make writing declarative programs easy, imperative programs hard.</li>
+</ol>
+</section>
+<section id="benefits-contd" class="slide level2">
+<h2>Benefits (Contd)</h2>
+<ol start="3" type="1">
+<li>You can pick your poison!
 <ul>
 <li>miniKaren has been implemented in multiple host languages - Scheme, Haskell, JavaScript, OCaml, Ruby, and our favourite, PHP.</li>
 </ul></li>
@@ -162,7 +153,7 @@
 <section id="differences-with-prolog" class="slide level2">
 <h2>Differences with Prolog</h2>
 <ul>
-<li><p>Interleaving complete search VS DFS</p></li>
+<li><p>Interleaving complete search v/s DFS</p></li>
 <li><p>Handling “procedural” or “effectual” operators</p></li>
 </ul>
 </section>
@@ -174,7 +165,12 @@
 </ul>
 <pre><code>non_terminating_rule(X) :- non_terminating_rule(Y) ; terminating_fact(Y)</code></pre>
 <ul>
-<li><p>Expected: termination.</p></li>
+<li>Expected: termination.</li>
+</ul>
+</section>
+<section id="interleaving-contd" class="slide level2">
+<h2>Interleaving (Contd)</h2>
+<ul>
 <li><p>Prolog (DFS-implementation): goes into an infinite recursion, doesn’t terminate.</p></li>
 <li><p>MiniKanren (Interleaving search) : does terminate, by incrementing both branches at each stage (aka BFS).</p></li>
 </ul>
@@ -194,6 +190,11 @@
 <ul>
 <li>Instead operating as a logical operator, it interferes with the solver itself by changing the way we unify our results.</li>
 </ul></li>
+</ul>
+</section>
+<section id="procedural-side-effects-1" class="slide level2">
+<h2>Procedural Side-Effects</h2>
+<ul>
 <li>another culprit: <code>retract</code>
 <ul>
 <li>which allows you to remove a fact / rule in prolog db, during execution.</li>
@@ -208,51 +209,51 @@
 <ul>
 <li>MicroKanren’s API has 4 core operators</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1"></a><span class="ot">fresh ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Constructs a new variable binding</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="ot">conj  ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Logical operator - Conjunction</span></span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="ot">disj  ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Logical operator - Disjunction</span></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="ot">(===) ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Logical operator - Equality</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ot">fresh ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Constructs a new variable binding</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ot">conj  ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Logical operator - Conjunction</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="ot">disj  ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Logical operator - Disjunction</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="ot">(===) ::</span> <span class="dt">Goal</span> <span class="co">-- ^ Logical operator - Equality</span></span></code></pre></div>
 </section>
 <section id="how-do-we-use-a-minikanren-program" class="slide level2">
 <h2>How do we use a miniKanren program?</h2>
 </section>
 <section id="we-construct-a-goal-we-want-to-satisfy" class="slide level2">
 <h2>We construct a goal we want to satisfy</h2>
-<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">-- | (X = &quot;1&quot; OR X = &quot;2&quot;) AND (Y = &quot;a&quot; OR Y = &quot;b&quot;)</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="ot">goal ::</span> <span class="dt">Goal</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a>goal <span class="ot">=</span> fresh <span class="op">$</span> </span>
-<span id="cb3-4"><a href="#cb3-4"></a>    \x <span class="ot">-&gt;</span> fresh <span class="op">$</span> </span>
-<span id="cb3-5"><a href="#cb3-5"></a>        \y <span class="ot">-&gt;</span> ((x <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span>) <span class="ot">`disj`</span> (x <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;2&quot;</span>)) </span>
-<span id="cb3-6"><a href="#cb3-6"></a>            <span class="ot">`conj`</span> ((y <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;a&quot;</span>) <span class="ot">`disj`</span> (y <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;b&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="co">-- | (X = &quot;1&quot; OR X = &quot;2&quot;) AND (Y = &quot;a&quot; OR Y = &quot;b&quot;)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="ot">goal ::</span> <span class="dt">Goal</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>goal <span class="ot">=</span> fresh <span class="op">$</span> </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    \x <span class="ot">-&gt;</span> fresh <span class="op">$</span> </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>        \y <span class="ot">-&gt;</span> ((x <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span>) <span class="ot">`disj`</span> (x <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;2&quot;</span>)) </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>            <span class="ot">`conj`</span> ((y <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;a&quot;</span>) <span class="ot">`disj`</span> (y <span class="op">===</span> <span class="dt">Atom</span> <span class="st">&quot;b&quot;</span>))</span></code></pre></div>
 </section>
 <section id="and-execute-it-against-our-initial-state" class="slide level2">
 <h2>And execute it against our initial state</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1"></a><span class="ot">initialState ::</span> <span class="dt">State</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a>initialState <span class="ot">=</span> ([], <span class="dv">0</span>)</span>
-<span id="cb4-3"><a href="#cb4-3"></a></span>
-<span id="cb4-4"><a href="#cb4-4"></a><span class="ot">results ::</span> <span class="dt">Stream</span> <span class="dt">State</span></span>
-<span id="cb4-5"><a href="#cb4-5"></a>results <span class="ot">=</span> goal initialState</span>
-<span id="cb4-6"><a href="#cb4-6"></a></span>
-<span id="cb4-7"><a href="#cb4-7"></a><span class="ot">displayResults ::</span> <span class="dt">IO</span> ()</span>
-<span id="cb4-8"><a href="#cb4-8"></a>displayResults <span class="ot">=</span> <span class="fu">putStrLn</span> <span class="op">$</span> prettyPrintResults results</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ot">initialState ::</span> <span class="dt">State</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>initialState <span class="ot">=</span> ([], <span class="dv">0</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a><span class="ot">results ::</span> <span class="dt">Stream</span> <span class="dt">State</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>results <span class="ot">=</span> goal initialState</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a><span class="ot">displayResults ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a>displayResults <span class="ot">=</span> <span class="fu">putStrLn</span> <span class="op">$</span> prettyPrintResults results</span></code></pre></div>
 </section>
 <section id="output" class="slide level2">
 <h2>Output</h2>
-<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1"></a><span class="co">-- | (X = &quot;1&quot; OR X = &quot;2&quot;) AND (Y = &quot;a&quot; OR Y = &quot;b&quot;)</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a><span class="co">-- Var 0 := X</span></span>
-<span id="cb5-3"><a href="#cb5-3"></a><span class="co">-- Var 1 := Y</span></span>
-<span id="cb5-4"><a href="#cb5-4"></a></span>
-<span id="cb5-5"><a href="#cb5-5"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;a&quot;</span></span>
-<span id="cb5-6"><a href="#cb5-6"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span></span>
-<span id="cb5-7"><a href="#cb5-7"></a></span>
-<span id="cb5-8"><a href="#cb5-8"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;a&quot;</span></span>
-<span id="cb5-9"><a href="#cb5-9"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;2&quot;</span></span>
-<span id="cb5-10"><a href="#cb5-10"></a></span>
-<span id="cb5-11"><a href="#cb5-11"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;b&quot;</span></span>
-<span id="cb5-12"><a href="#cb5-12"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span></span>
-<span id="cb5-13"><a href="#cb5-13"></a></span>
-<span id="cb5-14"><a href="#cb5-14"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;b&quot;</span></span>
-<span id="cb5-15"><a href="#cb5-15"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;2&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="co">-- | (X = &quot;1&quot; OR X = &quot;2&quot;) AND (Y = &quot;a&quot; OR Y = &quot;b&quot;)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="co">-- Var 0 := X</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="co">-- Var 1 := Y</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;a&quot;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;a&quot;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;2&quot;</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;b&quot;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">1</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;b&quot;</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true"></a><span class="dt">Var</span> <span class="dv">0</span> <span class="op">:=</span> <span class="dt">Atom</span> <span class="st">&quot;2&quot;</span></span></code></pre></div>
 <p>As you can see, we will get all associations which satisfy the stated constraints in the <code>goal</code>.</p>
 </section>
 <section id="how-do-we-bind-new-variables" class="slide level2">
@@ -265,14 +266,14 @@
 <section id="by-looking-in-state" class="slide level2">
 <h2>By looking in State</h2>
 <p>Inside our <code>State</code>, we have an implicit parameter <code>VariableCounter</code>:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">type</span> <span class="dt">State</span> <span class="ot">=</span> (<span class="dt">Subst</span>, <span class="dt">VariableCounter</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">type</span> <span class="dt">State</span> <span class="ot">=</span> (<span class="dt">Subst</span>, <span class="dt">VariableCounter</span>)</span></code></pre></div>
 <p>Each time <code>fresh</code> is applied to some <code>State</code>, we increment the <code>VariableCounter</code> and use it to generate unique identifiers for variables, e.g. <code>Var 0, Var 1, ...</code>.</p>
 </section>
 <section id="example" class="slide level2">
 <h2>Example</h2>
-<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1"></a>initialState <span class="ot">=</span> ([], <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>initialState <span class="ot">=</span> ([], <span class="dv">0</span>)</span></code></pre></div>
 <p>Gets updated to…</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1"></a>updatedState <span class="ot">=</span> ([(<span class="dt">Var</span> <span class="dv">0</span>, <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span>)], <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a>updatedState <span class="ot">=</span> ([(<span class="dt">Var</span> <span class="dv">0</span>, <span class="dt">Atom</span> <span class="st">&quot;1&quot;</span>)], <span class="dv">1</span>)</span></code></pre></div>
 </section>
 <section id="why-represent-results-as-a-stream-of-states" class="slide level2">
 <h2>Why represent results as a Stream of States?</h2>
@@ -281,13 +282,13 @@
 <section id="example-1" class="slide level2">
 <h2>Example</h2>
 <p>Given the following constraint for <code>X</code>:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1"></a><span class="dt">X</span> <span class="ot">=</span> <span class="dv">1</span> ∨ <span class="dt">X</span> <span class="ot">=</span> <span class="dv">2</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="dt">X</span> <span class="ot">=</span> <span class="dv">1</span> ∨ <span class="dt">X</span> <span class="ot">=</span> <span class="dv">2</span></span></code></pre></div>
 <p>We can have:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1"></a><span class="dt">X</span> <span class="op">:=</span> <span class="dv">1</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="co">---- OR</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a></span>
-<span id="cb10-5"><a href="#cb10-5"></a><span class="dt">X</span> <span class="op">:=</span> <span class="dv">2</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="dt">X</span> <span class="op">:=</span> <span class="dv">1</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="co">---- OR</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="dt">X</span> <span class="op">:=</span> <span class="dv">2</span></span></code></pre></div>
 <p>Hence we represent these possibilities in a <code>Stream</code>.</p>
 </section>
 <section id="laziness-of-haskell" class="slide level2">
@@ -302,9 +303,9 @@
 </section>
 <section id="stream-definition" class="slide level2">
 <h2>Stream definition</h2>
-<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">data</span> <span class="dt">Stream</span> a <span class="ot">=</span> <span class="dt">Nil</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a>              <span class="op">|</span> <span class="dt">Cons</span> a (<span class="dt">Stream</span> a)</span>
-<span id="cb11-3"><a href="#cb11-3"></a>              <span class="op">|</span> <span class="dt">Delayed</span> (<span class="dt">Stream</span> a) <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="kw">data</span> <span class="dt">Stream</span> a <span class="ot">=</span> <span class="dt">Nil</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>              <span class="op">|</span> <span class="dt">Cons</span> a (<span class="dt">Stream</span> a)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>              <span class="op">|</span> <span class="dt">Delayed</span> (<span class="dt">Stream</span> a) <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Show</span>)</span></code></pre></div>
 <p><code>Delay</code> can be used to force switching between 2 streams.</p>
 <p>To understand why this is needed, let’s talk about <code>disj</code>.</p>
 </section>
@@ -316,46 +317,46 @@
 <section id="example-2" class="slide level2">
 <h2>Example</h2>
 <p>if we had 2 result streams:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1"></a>s0 <span class="ot">=</span> [a, b, c]</span>
-<span id="cb12-2"><a href="#cb12-2"></a>s1 <span class="ot">=</span> [x, y, z]</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>s0 <span class="ot">=</span> [a, b, c]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>s1 <span class="ot">=</span> [x, y, z]</span></code></pre></div>
 <p><code>disj</code> would merge their results together like so:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1"></a>s_merged <span class="ot">=</span> [a, x, b, y, c, z]</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>s_merged <span class="ot">=</span> [a, x, b, y, c, z]</span></code></pre></div>
 </section>
 <section id="under-the-hood" class="slide level2">
 <h2>Under the hood</h2>
 <p>Under the hood it does something like this:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1"></a><span class="ot">interleave ::</span> [a] <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]</span>
-<span id="cb14-2"><a href="#cb14-2"></a>interleave [] l <span class="ot">=</span> l</span>
-<span id="cb14-3"><a href="#cb14-3"></a>interleave l [] <span class="ot">=</span> l</span>
-<span id="cb14-4"><a href="#cb14-4"></a>interleave (x<span class="op">:</span>xs) ys <span class="ot">=</span> x <span class="op">:</span> interleave ys xs</span>
-<span id="cb14-5"><a href="#cb14-5"></a></span>
-<span id="cb14-6"><a href="#cb14-6"></a><span class="op">&gt;</span> interleave [<span class="dv">1</span><span class="op">..</span><span class="dv">3</span>] [<span class="dv">2</span><span class="op">..</span><span class="dv">4</span>]</span>
-<span id="cb14-7"><a href="#cb14-7"></a><span class="op">&gt;</span> [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">4</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ot">interleave ::</span> [a] <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>interleave [] l <span class="ot">=</span> l</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>interleave l [] <span class="ot">=</span> l</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>interleave (x<span class="op">:</span>xs) ys <span class="ot">=</span> x <span class="op">:</span> interleave ys xs</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a><span class="op">&gt;</span> interleave [<span class="dv">1</span><span class="op">..</span><span class="dv">3</span>] [<span class="dv">2</span><span class="op">..</span><span class="dv">4</span>]</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a><span class="op">&gt;</span> [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">3</span>,<span class="dv">4</span>]</span></code></pre></div>
 </section>
 <section id="observation" class="slide level2">
 <h2>Observation</h2>
 <p><strong>We can see disj requires us to deconstruct at least one of its arguments</strong>, e.g. <code>x</code> in <code>(x:xs)</code>.</p>
 <p>We can then ignore everything else, until we force further evaluation:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span><span class="ot"> x ::</span> [<span class="dt">Int</span>]; x <span class="ot">=</span> interleave [<span class="dv">1</span><span class="op">..</span>] [<span class="dv">2</span>,<span class="dv">4</span><span class="op">..</span>]</span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span> <span class="op">:</span>sprint x</span>
-<span id="cb15-3"><a href="#cb15-3"></a>x <span class="ot">=</span> _</span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span> <span class="fu">head</span> x</span>
-<span id="cb15-5"><a href="#cb15-5"></a><span class="dv">1</span></span>
-<span id="cb15-6"><a href="#cb15-6"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span> <span class="op">:</span>sprint x</span>
-<span id="cb15-7"><a href="#cb15-7"></a>x <span class="ot">=</span> <span class="dv">1</span> <span class="op">:</span> _</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span><span class="ot"> x ::</span> [<span class="dt">Int</span>]; x <span class="ot">=</span> interleave [<span class="dv">1</span><span class="op">..</span>] [<span class="dv">2</span>,<span class="dv">4</span><span class="op">..</span>]</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span> <span class="op">:</span>sprint x</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a>x <span class="ot">=</span> _</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span> <span class="fu">head</span> x</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a><span class="dv">1</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a><span class="op">*</span><span class="dt">MicroKanren</span><span class="op">&gt;</span> <span class="op">:</span>sprint x</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a>x <span class="ot">=</span> <span class="dv">1</span> <span class="op">:</span> _</span></code></pre></div>
 </section>
 <section id="recursive-goals" class="slide level2">
 <h2>Recursive goals</h2>
 <p>So far so good, until we recursively define a goal</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">-- |</span></span>
-<span id="cb16-2"><a href="#cb16-2"></a><span class="co">-- &quot;goalR&quot; refers to recursive goal</span></span>
-<span id="cb16-3"><a href="#cb16-3"></a><span class="co">-- &quot;goalT&quot; refers to terminal goal which always succeeds</span></span>
-<span id="cb16-4"><a href="#cb16-4"></a></span>
-<span id="cb16-5"><a href="#cb16-5"></a><span class="ot">goalR ::</span> <span class="dt">Goal</span></span>
-<span id="cb16-6"><a href="#cb16-6"></a>goalR <span class="ot">=</span> goalR <span class="ot">`disj`</span> goalT</span>
-<span id="cb16-7"><a href="#cb16-7"></a></span>
-<span id="cb16-8"><a href="#cb16-8"></a><span class="ot">goalT ::</span> <span class="dt">Goal</span></span>
-<span id="cb16-9"><a href="#cb16-9"></a>goalT <span class="ot">=</span> <span class="fu">return</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="co">-- |</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="co">-- &quot;goalR&quot; refers to recursive goal</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a><span class="co">-- &quot;goalT&quot; refers to terminal goal which always succeeds</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a><span class="ot">goalR ::</span> <span class="dt">Goal</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a>goalR <span class="ot">=</span> goalR <span class="ot">`disj`</span> goalT</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a><span class="ot">goalT ::</span> <span class="dt">Goal</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a>goalT <span class="ot">=</span> <span class="fu">return</span></span></code></pre></div>
 <p>Inutitively, this should work fine for us, as <code>disj</code> should behave like so…</p>
 </section>
 <section id="expected-behaviors-of-disj" class="slide level2">
@@ -374,23 +375,23 @@
 <section id="in-practice" class="slide level2">
 <h2>In practice</h2>
 <p>In practice however, the following occurs:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1"></a>goalR s <span class="ot">=</span> (goalR <span class="ot">`disj`</span>  goalT) s</span>
-<span id="cb17-2"><a href="#cb17-2"></a>        <span class="ot">=</span> goalR s <span class="ot">`mplus`</span>  goalT s </span>
-<span id="cb17-3"><a href="#cb17-3"></a>        <span class="co">-- mplus behavior is the same as interleave</span></span>
-<span id="cb17-4"><a href="#cb17-4"></a>        <span class="co">-- We evaluate the first argument, in order to deconstruct it</span></span>
-<span id="cb17-5"><a href="#cb17-5"></a>        <span class="ot">=</span> (goalR <span class="ot">`disj`</span> goalT) s <span class="ot">`mplus`</span> goalT s</span>
-<span id="cb17-6"><a href="#cb17-6"></a>        <span class="ot">=</span> (goalR s <span class="ot">`mplus`</span> goalT s) <span class="ot">`mplus`</span> goalT s</span>
-<span id="cb17-7"><a href="#cb17-7"></a>        <span class="ot">=</span> ((goalR s <span class="ot">`mplus`</span> goalT s) </span>
-<span id="cb17-8"><a href="#cb17-8"></a>            <span class="ot">`mplus`</span> goalT s) </span>
-<span id="cb17-9"><a href="#cb17-9"></a>                <span class="ot">`mplus`</span> goalT s</span>
-<span id="cb17-10"><a href="#cb17-10"></a>        <span class="ot">=</span> <span class="op">...</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a>goalR s <span class="ot">=</span> (goalR <span class="ot">`disj`</span>  goalT) s</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>        <span class="ot">=</span> goalR s <span class="ot">`mplus`</span>  goalT s </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a>        <span class="co">-- mplus behavior is the same as interleave</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a>        <span class="co">-- We evaluate the first argument, in order to deconstruct it</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a>        <span class="ot">=</span> (goalR <span class="ot">`disj`</span> goalT) s <span class="ot">`mplus`</span> goalT s</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true"></a>        <span class="ot">=</span> (goalR s <span class="ot">`mplus`</span> goalT s) <span class="ot">`mplus`</span> goalT s</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true"></a>        <span class="ot">=</span> ((goalR s <span class="ot">`mplus`</span> goalT s) </span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true"></a>            <span class="ot">`mplus`</span> goalT s) </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true"></a>                <span class="ot">`mplus`</span> goalT s</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true"></a>        <span class="ot">=</span> <span class="op">...</span></span></code></pre></div>
 <p>As we can see, we are never able to extract the head of <code>goalR s</code> due to its recursive definition.</p>
 </section>
 <section id="swapping-arguments" class="slide level2">
 <h2>Swapping arguments</h2>
 <p>However, if we swapped the arguments around:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1"></a>goalR s <span class="ot">=</span> (goalT <span class="ot">`disj`</span>  goalR) s</span>
-<span id="cb18-2"><a href="#cb18-2"></a>        <span class="ot">=</span> goalT s <span class="ot">`mplus`</span>  goalR s </span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a>goalR s <span class="ot">=</span> (goalT <span class="ot">`disj`</span>  goalR) s</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>        <span class="ot">=</span> goalT s <span class="ot">`mplus`</span>  goalR s </span></code></pre></div>
 <p>Since <code>goalT s</code> terminates, we would be able ignore the recursive part, until forced to yield more results.</p>
 </section>
 <section id="user-intervention" class="slide level2">
@@ -400,9 +401,9 @@
 </section>
 <section id="using-delay-to-force-switching" class="slide level2">
 <h2>Using Delay to force switching</h2>
-<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1"></a>goalR s <span class="ot">=</span> <span class="dt">Delayed</span> (goalR s) <span class="ot">`mplus`</span> goalT s</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a>goalR s <span class="ot">=</span> <span class="dt">Delayed</span> (goalR s) <span class="ot">`mplus`</span> goalT s</span></code></pre></div>
 <p><code>mplus</code> can pattern match on the <code>Delayed</code> data constructor of our <code>Stream</code> and perform a switch</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1"></a>goalR s <span class="ot">=</span> <span class="dt">Delayed</span> (goalT s <span class="ot">`mplus`</span> goalR s)</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a>goalR s <span class="ot">=</span> <span class="dt">Delayed</span> (goalT s <span class="ot">`mplus`</span> goalR s)</span></code></pre></div>
 </section>
 <section id="evaluation" class="slide level2">
 <h2>Evaluation</h2>
@@ -421,9 +422,9 @@
 </section>
 <section id="expansion" class="slide level2">
 <h2>Expansion</h2>
-<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1"></a>goalR s <span class="ot">=</span> <span class="dt">Delayed</span> (goalR s <span class="ot">`mplus`</span> goalT s)</span>
-<span id="cb21-2"><a href="#cb21-2"></a>        <span class="ot">=</span> <span class="dt">Delayed</span> ((<span class="dt">Delayed</span> (goalR s <span class="ot">`mplus`</span> goalT s)) <span class="ot">`mplus`</span> goalT s)</span>
-<span id="cb21-3"><a href="#cb21-3"></a>        <span class="ot">=</span> <span class="dt">Delayed</span> (<span class="dt">Delayed</span> (goalT s <span class="ot">`mplus`</span> goalR s <span class="ot">`mplus`</span> goalT s))</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a>goalR s <span class="ot">=</span> <span class="dt">Delayed</span> (goalR s <span class="ot">`mplus`</span> goalT s)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a>        <span class="ot">=</span> <span class="dt">Delayed</span> ((<span class="dt">Delayed</span> (goalR s <span class="ot">`mplus`</span> goalT s)) <span class="ot">`mplus`</span> goalT s)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a>        <span class="ot">=</span> <span class="dt">Delayed</span> (<span class="dt">Delayed</span> (goalT s <span class="ot">`mplus`</span> goalR s <span class="ot">`mplus`</span> goalT s))</span></code></pre></div>
 </section>
 <section id="what-does-it-mean" class="slide level2">
 <h2>What does it mean?</h2>
@@ -456,21 +457,26 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/reveal.js@3.9.2//js/reveal.js"></script>
+  <script src="https://unpkg.com/reveal.js@3.9.2//dist/reveal.js"></script>
+
+  // reveal.js plugins
+  <script src="https://unpkg.com/reveal.js@3.9.2//plugin/notes/notes.js"></script>
+  <script src="https://unpkg.com/reveal.js@3.9.2//plugin/search/search.js"></script>
+  <script src="https://unpkg.com/reveal.js@3.9.2//plugin/zoom/zoom.js"></script>
 
   <script>
 
       // Full list of configuration options available at:
-      // https://github.com/hakimel/reveal.js#configuration
+      // https://revealjs.com/config/
       Reveal.initialize({
         // Push each slide change to the browser history
         history: true,
 
-        // Optional reveal.js plugins
-        dependencies: [
-          { src: 'https://unpkg.com/reveal.js@3.9.2//lib/js/classList.js', condition: function() { return !document.body.classList; } },
-          { src: 'https://unpkg.com/reveal.js@3.9.2//plugin/zoom-js/zoom.js', async: true },
-          { src: 'https://unpkg.com/reveal.js@3.9.2//plugin/notes/notes.js', async: true }
+        // reveal.js plugins
+        plugins: [
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
         ]
       });
     </script>
