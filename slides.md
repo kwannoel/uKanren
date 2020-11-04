@@ -105,6 +105,7 @@ disj  :: Goal -- ^ Logical operator - Disjunction
 ## We construct a goal we want to satisfy
 
 ``` haskell
+-- | (X = "1" OR X = "2") AND (Y = "a" OR Y = "b")
 goal :: Goal
 goal = fresh $ 
     \x -> fresh $ 
@@ -128,6 +129,10 @@ displayResults = putStrLn $ prettyPrintResults results
 ## Output
 
 ```haskell
+-- | (X = "1" OR X = "2") AND (Y = "a" OR Y = "b")
+-- Var 0 := X
+-- Var 1 := Y
+
 Var 1 := Atom "a"
 Var 0 := Atom "1"
 
