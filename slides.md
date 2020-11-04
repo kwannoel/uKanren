@@ -1,14 +1,19 @@
 % MicroKanren
 
-## The original keynote
+## MicroKanren
+Parsing & Implementation
+
+by Noel, E-liang and Mayank
+
+## Based on The original keynote
 
 [William E Byrd - Relational Interpreters, Program Synthesis, Barliman](https://www.youtube.com/watch?v=RVDCRlW1f1Y)
 
-## Takeaways
+## Intro
 
 - Declarative programming
 
-  - Talk about the properties of our programs
+  - Only talk about the properties of our programs
 
   - We get the exact properties we ask for
   
@@ -20,17 +25,68 @@
   
   - Functionality is implicitly produced from specifications
 
+
+## Common pitfalls in declarative programming
+- Easy to ideate, hard to reason about "procedure".
+  - often resort to procedural "side-effects"
+
+- E.g. difficult to ideate variable bindings
+
+- Reinventing the wheel for simple functions
+
+## MiniKanren!
+- Declarative, relational (Japanese - 関連 - "relation") "family" of languages
+        - canonically written in Scheme
+
+- Small core (desugared): MicroKanren (today's topic)
+
+- Built to be idiomatic to the "host" language and relational programming.
+
 ## Benefits of miniKanren family of languages
 
 1. Easy to extend and modify.
+    - extended to logic programming (constraint, nominal and probabilistic), and tabling
+    - reason: the core takes just 2 A4 pages to implement (which we did!)
 
 2. Make writing declarative programs easy, imperative programs hard.
+
+3. You can pick your poison!
+    - miniKaren has been implemented in multiple host languages - Scheme, Haskell, JavaScript, OCaml, Ruby, and our favourite, PHP.
 
 ## Differences with Prolog
 
 - Interleaving complete search VS DFS
 
-- Cut and other effectful operators
+- Handling "procedural" or "effectual" operators
+
+## Interleaving vs DFS
+
+- Or how to avoid non-terminating programs as much as possible
+
+- Consider this:
+```
+non_terminating_rule(X) :- non_terminating_rule(Y) ; terminating_fact(Y)
+```
+
+- Expected: termination.
+
+- Prolog (DFS-implementation): goes into an infinite recursion, doesn't terminate. 
+
+- MiniKanren (Interleaving search) : does terminate, by incrementing both branches at each stage (aka BFS). 
+
+## Procedural Side-Effects
+
+- a culprit: Cut (!) operator in Prolog 
+   - interferes with the search for the results
+
+- E.g. `self(X, Y): X \= Y, !, …`
+   - This prevents backtracking to A
+
+- Why is it considered a side effect?
+   - Instead operating as a logical operator, it interferes with the solver itself by changing the way we unify our results.
+
+- another culprit: `retract`
+   - which allows you to remove a fact / rule in prolog db, during execution.
 
 ## Implementation
 
@@ -46,7 +102,7 @@ goal = fresh $
             `conj` ((y === Atom "a") `disj` (y === Atom "b"))
 ```
 
-## And execute it against out initial state
+## And execute it against our initial state
 
 ```haskell
 initialState :: State
