@@ -1,6 +1,8 @@
 # Description
 
-Many thanks to [William Byrd](https://github.com/webyrd) and [Jason Hemann](https://github.com/jasonhemann) for reviewing this implementation and providing links to useful resources!
+Many thanks to [William Byrd](https://github.com/webyrd) and [Jason Hemann](https://github.com/jasonhemann) for reviewing this implementation and providing links to useful resources.
+
+Thanks to [E-liang](https://github.com/taneliang) and [Mayank](https://github.com/mkeoliya) for providing valuable feedback and the presentation as well.
 
 ---
 
