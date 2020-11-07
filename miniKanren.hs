@@ -1,9 +1,4 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-|
-=========
-== WIP ==
-=========
--}
 
 module MiniKanren where
 
@@ -13,6 +8,8 @@ import           MicroKanren        (Goal, State, Stream (..), Subst, Term (..),
 
 import           Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
+
+-------------- Safe + ergonomic versions of logical operators
 
 -- | Safe disj of one or more goals
 disjN :: NonEmpty Goal -> Goal
@@ -34,9 +31,11 @@ freshN :: MultiParamFunction f => f -> Goal
 freshN f = \(s, c) -> let (c', g) = apply f c
                       in g (s, c')
 
+-- | Auxiliary class to provide indirection
 class MultiParamFunction f where
     apply :: f -> VariableCounter -> (VariableCounter, Goal)
 
+-- | Inductive case
 instance MultiParamFunction f => MultiParamFunction (Term -> f) where
     apply f c = apply f' c'
         where f' = f (Var c)
