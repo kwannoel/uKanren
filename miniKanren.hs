@@ -1,6 +1,4 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-|
 =========
 == WIP ==
@@ -32,20 +30,20 @@ conde :: NonEmpty (NonEmpty Goal) -> Goal
 conde = delay . disjN . fmap conjN
 
 -- | freshN -> takes in a function which performs binding of n variables to a goal
-freshN :: MultiParamFunction i r => (Term -> i -> r) -> Goal
+freshN :: MultiParamFunction f => f -> Goal
 freshN f = \(s, c) -> let (c', g) = apply f c
                       in g (s, c')
 
-class MultiParamFunction i r where
-    apply :: (Term -> i -> r) -> VariableCounter -> (VariableCounter, Goal)
+class MultiParamFunction f where
+    apply :: f -> VariableCounter -> (VariableCounter, Goal)
 
-instance MultiParamFunction i r => MultiParamFunction Term (i -> r) where
+instance MultiParamFunction f => MultiParamFunction (Term -> f) where
     apply f c = apply f' c'
         where f' = f (Var c)
               c' = c + 1
 
 -- | Base case
-instance MultiParamFunction State (Stream State) where
+instance MultiParamFunction (Term -> Goal) where
     apply f c = (c + 1, f (Var c))
 
 main :: IO ()
