@@ -1,4 +1,5 @@
 -- | Example of a SAT solver
+-- stack runghc SAT.hs ./microKanren.hs
 
 module SAT where
 
@@ -39,10 +40,6 @@ satSolver =
                `conj`
                  bindings
                 -- | Bind True, False to x and y
-
-
-initialState :: State
-initialState = ([], 0)
 
 printRes :: Stream State -> String
 printRes Nil = "False"
