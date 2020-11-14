@@ -6,6 +6,7 @@ import           MicroKanren        (Goal, State, Stream (..), Subst, Term (..),
                                      Var, VariableCounter, conj, delay, disj,
                                      extS, fresh, unify, walk, (===))
 
+import           Data.Bifunctor     (first)
 import           Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
 
@@ -44,6 +45,20 @@ instance MultiParamFunction f => MultiParamFunction (Term -> f) where
 -- | Base case
 instance MultiParamFunction (Term -> Goal) where
     apply f c = (c + 1, f (Var c))
+
+-- | Returns the binding only for the select term
+run :: (Term -> Goal) -> Goal
+run f = delay $ \(s, c) -> (first $ select c) <$> f (Var c) (s, c + 1)
+    where select :: Var -> Subst -> Subst
+          select c s = case lookup c s of
+              Just v -> return (c, v)
+              _      -> []
+
+-- | Fully evaluate, force on bindings
+runEval :: (Term -> Goal) -> Goal
+runEval f = delay $ \(s, c) -> (first $ select c) <$> f (Var c) (s, c + 1)
+    where select :: Var -> Subst -> Subst
+          select c s = return (c, walk (Var c) s)
 
 main :: IO ()
 main = do

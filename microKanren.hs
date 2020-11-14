@@ -14,6 +14,9 @@ module MicroKanren ( Stream (..)
                    , conj
                    , delay
                    -- | Utilities
+                   , failure
+                   , initialState
+                   , takeS
                    , prettyPrintResult
                    , prettyPrintResults
                    ) where
@@ -36,6 +39,7 @@ data Term = Atom String
 walk :: Term -> Subst -> Term
 walk (Var v) s = case lookup v s of Nothing -> Var v
                                     Just a  -> walk a s
+walk (Pair t1 t2) s = Pair (walk t1 s) (walk t2 s)
 walk t _ = t
 
 extS :: Var -> Term -> Subst -> Maybe Subst
@@ -110,6 +114,9 @@ instance Applicative Stream where
     (f `Cons` fs) <*> as = fmap f as <|> (fs <*> as)
     Delayed fs <*> as    = Delayed (fs <*> as)
 
+-- | A goal which always fails
+failure :: Goal
+failure _ = Nil
 
 -- | Annotate recursive goals with this
 delay :: Goal -> Goal
@@ -120,7 +127,7 @@ delay = fmap Delayed
 prettyPrintResults :: Stream State -> String
 prettyPrintResults Nil = ""
 prettyPrintResults (Delayed s) = prettyPrintResults s
-prettyPrintResults (Cons s ss) = unlines [prettyPrintResult $ fst s, prettyPrintResults ss]
+prettyPrintResults (Cons s ss) = prettyPrintResult (fst s) <> "\n" <> prettyPrintResults ss
 
 prettyPrintResult :: Subst -> String
 prettyPrintResult = unlines . fmap showBinding
