@@ -1,5 +1,5 @@
 import           MicroKanren
-import           MiniKanren  (run)
+import           MiniKanren  (runEval)
 
 nil :: Term
 nil = Atom mempty
@@ -17,6 +17,6 @@ nat x = disj
 
 
 main :: IO ()
-main = putStrLn $ prettyPrintResults $ takeS 4 $ run nat initialState
+main = putStrLn $ prettyPrintResults $ takeS 4 $ runEval nat initialState
 
 -- f = \x -> nat x `conj` (x === suc (suc (suc nil))) -- does not evaluate, a bug??
